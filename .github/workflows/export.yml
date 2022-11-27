@@ -10,8 +10,9 @@ jobs:
         run: npm ci
       - name: Export Figma Components to Images
         uses: primer/figma-action@v1.0.0-alpha.3
+        env:
+          FIGMA_TOKEN: ${{secrets.FIGMA_TOKEN}}
+          FIGMA_FILE_URL: https://www.figma.com/file/Pez6alDW7c8sbeRWHtjq2U/Game-Logos
         with:
           args: "format=png outputDir=./logos/"
-          env:
-            FIGMA_TOKEN: ${{secrets.FIGMA_TOKEN}}
-            FIGMA_FILE_URL: https://www.figma.com/file/Pez6alDW7c8sbeRWHtjq2U/Game-Logos
+          
