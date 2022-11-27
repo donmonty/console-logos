@@ -13,5 +13,5 @@ jobs:
         with:
           args: "format=png outputDir=./logos/"
           env:
-            FIGMA-TOKEN: ${{secrets.FIGMA-TOKEN}}
+            FIGMA_TOKEN: ${{secrets.FIGMA-TOKEN}}
             FIGMA_FILE_URL: https://www.figma.com/file/Pez6alDW7c8sbeRWHtjq2U/Game-Logos
