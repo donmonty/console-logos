@@ -1,0 +1,5 @@
+name: "Upload Figma logos"
+description: "Export the logos from a Figma file and upload them to S3"
+runs:
+  using: "node16"
+  main: "main.js"
