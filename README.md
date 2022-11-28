@@ -1,34 +1,30 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+## Custom GitHub Action: Export Figma components and upload them to S3
+This NextJS app includes a custom GitHub Action that takes the components in a Figma file, exports them as PNGs, and uploads them to a S3 bucket. The workflow also updates a Postgres database with the S3 urls.
 
-## Getting Started
+### The Figma file
 
-First, run the development server:
+The Figma file for this example is a collection of game console logos, including classics like the Super Nintendo, Sega Genesis and Nintendo 64. Each logo consists of a component inside a frame.
 
-```bash
-npm run dev
-# or
-yarn dev
-```
+<img width="795" alt="figma-logos-file" src="https://user-images.githubusercontent.com/13739454/204247579-daf55be3-6306-4090-a642-4d70076a13a0.png">
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### The Postgres database
+The database used in this example is a simple Postgres instance hosted in Supabase with only one table. The table stores the logo data, including the S3 url, which can be NULL.
 
-You can start editing the page by modifying `pages/index.js`. The page auto-updates as you edit the file.
+<img width="962" alt="supabase-table" src="https://user-images.githubusercontent.com/13739454/204248105-a2108677-f262-4381-a20b-0f94aef7d508.png">
 
-[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.js`.
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
+## How it works
+- The custom action connects to the Figma API and fetches the components data from the file.
+- Then it fetches the logo records with null URLs from the database
+- It connects again to the Figma API and exports only those logos with null URLs in the database
+- Figma stores the exported logos in its own S3 bucket, providing their URLs.
+- The action takes these URLs provided by Figma and uses them to upload the logos to a proprietary S3 bucket.
+- Finally, the action updates the logos table, updating the URL columns with the newly created S3 URLs.
 
-## Learn More
+### Notes:
+- The custom action is currently triggered manually, but it can be triggered via a Figma webhook as well (a webhook of type FILE_VERSION_UPDATE).
+- This means that we can add as many new logos to the Figma file as we want, create a new named version of it, and the action will upload all the new logos to the S3 bucket and update the database accordingly.
+- The NextJS app doesn't do anything yet, it's just a placeholder for the custom GitHub action.
 
-To learn more about Next.js, take a look at the following resources:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
