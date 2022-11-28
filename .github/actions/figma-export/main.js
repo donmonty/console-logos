@@ -2,6 +2,7 @@ require('dotenv').config()
 const axios = require('axios');
 const PQueue = require('p-queue');
 const S3 = require('aws-sdk/clients/s3');
+const utils = require('./utils');
 
 async function run() {
 
@@ -110,6 +111,23 @@ async function run() {
     // Upload images to S3 bucket
     queueTasks(tasks);
 
+    // Update Supabase DB
+    const supabaseClient = await utils.getSupaServiceClient();
+    const logoUrls = Object.values(components).map(component => {
+      return {
+        name: component.name,
+        url: `https://${s3ImagesBucketName}.s3.us-west-1.amazonaws.com/${component.name}`
+      }
+    });
+    const { dBdata, dBerror } = await supabaseClient
+      .from('logos')
+      .upsert(logoUrls, { onConflict: 'name' })
+      .select();
+      
+    if (dBerror) {
+      throw dBerror;
+    }
+    console.log("Supabase DB data: ", dBdata);
 
   } catch(err) {
     console.log("Error in run: ", err);
