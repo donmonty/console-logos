@@ -21,11 +21,7 @@ async function run() {
 
       components[id] = {
         name,
-        // filename,
         id,
-        // key,
-        // file: fileId,
-        // description,
         width,
         height
       }
