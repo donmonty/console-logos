@@ -15,5 +15,5 @@ jobs:
           FIGMA_FILE_URL: Pez6alDW7c8sbeRWHtjq2U
           AWS_S3_ACCESS_KEY: ${{secrets.AWS_S3_ACCESS_KEY}}
           AWS_S3_ACCESS_SECRET: ${{secrets.AWS_S3_ACCESS_SECRET}}
-          AWS_S3_IMAGES_BUCKET_NAME: ${{secrets.AWS_S3_IMAGES_BUCKET}}
+          AWS_S3_IMAGES_BUCKET_NAME: ${{secrets.AWS_S3_IMAGES_BUCKET_NAME}}
           
