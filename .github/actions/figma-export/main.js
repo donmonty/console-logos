@@ -12,6 +12,7 @@ async function run() {
   const s3SecretAccessKey = process.env.AWS_S3_ACCESS_SECRET;
   const s3ImagesBucketName = process.env.AWS_S3_IMAGES_BUCKET_NAME;
   const s3 = new S3({ accessKeyId: s3AccessKeyId, secretAccessKey: s3SecretAccessKey });
+  const supabaseClient = await utils.getSupaServiceClient();
 
   const components = {};
 
@@ -79,16 +80,50 @@ async function run() {
         }
       }
     );
-    const data = response.data;
+    const fileData = response.data;
 
-    data.document.children.forEach(check);
+    fileData.document.children.forEach(check);
     if (Object.values(components).length === 0) {
       throw Error('No components found!');
     }
     console.log(`${Object.values(components).length} components found in the Figma file`);
 
-    // Get image URLS
-    const componentIds = Object.keys(components);
+    // Create a list with the Figma component ids and names
+    const logoObjects = Object.values(components).map(component => {
+      return {
+        id: component.id,
+        name: component.name,
+      }
+    });
+    // Fetch lgos from DB where url === null
+    const { data, error } = await supabaseClient
+      .from('logos')
+      .select("id, name, url")
+      .is("url", null);
+
+    if (error) {
+      throw error;
+    }
+    console.log("Supabase DB data: ", data);
+
+    // Upload only logos with null URLs
+    const logosWithNullUrls = data;
+    console.log("Logos with null URLs:", logosWithNullUrls);
+    // If there are no logos with null URLs, return
+    if (logosWithNullUrls.length === 0) return;
+    // Get the IDs of the components that have url === null in de DB
+    const componentIds = logosWithNullUrls.map(logo => {
+      return logoObjects.find(logoObject => logoObject.name === logo.name).id;
+    });
+    // Create a new component object that only contains the logos with null URLs
+    const componentsOk = {};
+    logosWithNullUrls.forEach(logo => {
+      const value = logoObjects.find(logoObject => logoObject.name === logo.name);
+      const id = logoObjects.find(logoObject => logoObject.name === logo.name).id;
+      componentsOk[id] = value;
+    });
+    
+    // Export the logos as PNGs and get their URLs from the Figma API
     const imageUrls = await axios.get(
       `https://api.figma.com/v1/images/${FIGMA_FILE_URL}?ids=${componentIds}&format=png`,
       {
@@ -99,35 +134,48 @@ async function run() {
     );
     console.log ("Image URLS: ", imageUrls.data);
     
-    // Insert the image URLS into the components object
+    // Insert the image URLS into the new components object
     for(const id of Object.keys(imageUrls.data.images)) {
-      components[id].image = imageUrls.data.images[id]
+      componentsOk[id].image = imageUrls.data.images[id]
     }
 
-    const tasks = Object.values(components).map(async (component) => {
+    console.log("ComponentsOk: ", componentsOk);
+
+    const tasks = Object.values(componentsOk).map(async (component) => {
       return await uploadImage(component.image, component.name, "image/png");
     });
 
     // Upload images to S3 bucket
     queueTasks(tasks);
 
-    // Update Supabase DB
-    const supabaseClient = await utils.getSupaServiceClient();
-    const logoUrls = Object.values(components).map(component => {
+    // Create a list with the Figma component ids and names (using the new components object)
+    const logoObjectsToUpdate = Object.values(componentsOk).map(component => {
       return {
         name: component.name,
         url: `https://${s3ImagesBucketName}.s3.us-west-1.amazonaws.com/${component.name}`
       }
     });
-    const { dBdata, dBerror } = await supabaseClient
+
+    // Assign the URLs to the logos
+    const logosToUpdate = logoObjectsToUpdate.map(logo => {
+      return {
+        id: logosWithNullUrls.find(logoWithNullUrl => logoWithNullUrl.name === logo.name).id,
+        url: logo.url,
+        name: logo.name
+      };
+    });
+    console.log("Logos to update: ", logosToUpdate);
+
+    // Update the logos in the DB
+    const { data: upsertedData, error: upsertedError } = await supabaseClient
       .from('logos')
-      .upsert(logoUrls, { onConflict: 'name' })
+      .upsert(logosToUpdate)
       .select();
-      
-    if (dBerror) {
-      throw dBerror;
+
+    if (upsertedError) {
+      throw upsertedError;
     }
-    console.log("Supabase DB data: ", dBdata);
+    console.log("Upserted data: ", upsertedData);
 
   } catch(err) {
     console.log("Error in run: ", err);
