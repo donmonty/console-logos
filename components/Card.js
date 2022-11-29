@@ -4,7 +4,6 @@ import Image from "next/image";
 import imagePlaceholder from "../public/images/image-placeholder.png";
 
 export default function Card(props) {
-  console.log("props.url", props.url);
   return (
     <div className={styles.card}>
       <div 
