@@ -22,9 +22,12 @@ The database used in this example is a simple Postgres instance hosted in Supaba
 - Finally, the action updates the logos table, updating the URL columns with the newly created S3 URLs.
 
 ### Notes:
-- The custom action is currently triggered manually, but it can be triggered via a Figma webhook as well (a webhook of type FILE_VERSION_UPDATE).
-- This means that we can add as many new logos to the Figma file as we want, create a new named version of it, and the action will upload all the new logos to the S3 bucket and update the database accordingly.
-- The NextJS app doesn't do anything yet, it's just a placeholder for the custom GitHub action.
+- The custom action can be triggered manually or via a Figma webhook of type FILE_VERSION_UPDATE. This means that the webhook will be triggered each time a new named version is created by the user in the Figma file.
+- This also means that we can add as many new logos to the Figma file as we want, create a new named version of it, and the action will upload all the new logos to the S3 bucket and update the database accordingly.
+- You can check the live Game Consoles Site [here](https://game-consoles.onrender.com/).
+
+<img width="593" alt="game-consoles-site" src="https://user-images.githubusercontent.com/13739454/204509495-e387d722-d48c-4338-9191-4ae9f094b6f7.png">
+
 
 
 
