@@ -13,6 +13,7 @@ module.exports = {
         pathname: '/**',
       },
     ],
+    unoptimized: true,
   },
   ...nextConfig,
 }
