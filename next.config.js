@@ -3,4 +3,16 @@ const nextConfig = {
   reactStrictMode: true,
 }
 
-module.exports = nextConfig
+module.exports = {
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'game-console-logos.s3.us-west-1.amazonaws.com',
+        port: '',
+        pathname: '/**',
+      },
+    ],
+  },
+  ...nextConfig,
+}
