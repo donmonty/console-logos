@@ -112,15 +112,22 @@ async function run() {
     // If there are no logos with null URLs, return
     if (logosWithNullUrls.length === 0) return;
     // Get the IDs of the components that have url === null in de DB
-    const componentIds = logosWithNullUrls.map(logo => {
-      return logoObjects.find(logoObject => logoObject.name === logo.name).id;
+    let componentIds = logosWithNullUrls.map(logo => {
+      const obj = logoObjects.find(logoObject => logoObject.name === logo.name);
+      if (obj) return obj.id;
+      return null;
     });
+    componentIds = componentIds.filter(id => id !== null);
+
     // Create a new component object that only contains the logos with null URLs
     const componentsOk = {};
     logosWithNullUrls.forEach(logo => {
       const value = logoObjects.find(logoObject => logoObject.name === logo.name);
-      const id = logoObjects.find(logoObject => logoObject.name === logo.name).id;
-      componentsOk[id] = value;
+      let id = logoObjects.find(logoObject => logoObject.name === logo.name);
+      if (value && id) {
+        id = id.id;
+        componentsOk[id] = value;
+      }
     });
     
     // Export the logos as PNGs and get their URLs from the Figma API
